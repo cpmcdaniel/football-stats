@@ -4,39 +4,28 @@
         [clojure.java.io :only [resource]]
         [cheshire.core :only [parse-string]]))
 
+(defn get-static-team-info []
+  (parse-string
+   (slurp
+    (resource "football_stats/nfldotcom/team-data.json"))
+   true))
+
 (defn create-metadata-txs []
   ;; Transaction data for team info.
-  (for [team
-        (parse-string
-         (slurp
-          (resource "football_stats/nfldotcom/team-data.json"))
-         true)]
+  (for [[abbr team] (get-static-team-info)]
     {:db/id #db/id[:db.part/user]
      :team/abbr (:abbr team)
      :team/name (:city team)
-     :team/mascot (:mascot team)}))
+     :team/mascot (:nickname team)}))
 
 (defn install-metadata [conn]
-  (d/transact conn (create-metadata-txs)))
+  (do
+    (d/transact conn (create-metadata-txs))))
 
 (defn install-schema [conn]
   (d/transact
    conn
    [
-    ;; Function for linking a player.
-    {:db/id #db/id[:db.part/db]
-     :db/ident :link-player
-     :db/fn #db/fn {:lang "clojure"
-                    :params [db e a nflid name team]
-                    :code link-player}}
-
-    ;; Function for creating a player.
-    {:db/id #db/id[:db.part/db]
-     :db/ident :create-player
-     :db/fn #db/fn {:lang "clojure"
-                    :params [db e nflid name team]
-                    :code link-player}}
-    
     ;; Game
     {:db/id #db/id[:db.part/db]
      :db/ident :game/gameid

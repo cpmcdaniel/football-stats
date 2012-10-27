@@ -14,9 +14,4 @@
   :checksum :warn
   ;;:main football-stats.core
 
-  ;;  Project Notes
-  ;;
-  ;;  TODO
-  ;;  * Unit test for storing game home team rushing
-  ;;  * Store all games in Datomic.
   )

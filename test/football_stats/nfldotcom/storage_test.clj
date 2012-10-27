@@ -13,13 +13,13 @@
 
 (defn datomic-fixture [t]
   ;; Setup
+  (d/delete-database datomic-test-uri)
   (d/create-database datomic-test-uri)
   (binding [conn (d/connect datomic-test-uri)]
     (install conn)
     (store-game nflgame conn)
     (t)) ;; execute test
-  ;; Tear down
-  (d/delete-database datomic-test-uri))
+  )
 
 (use-fixtures :once datomic-fixture)
 
@@ -53,13 +53,21 @@
                            :game/home
                            :game.team/stats
                            :stats/rushing)]
-     (is (= 999 rushing-stats)))))
+     (is (= 999 rushing-stats))))
+
+  (-> nflgame :2011090800 :home keys)
+
+  )
 
 (deftest test-team-data
   (doseq [e (q '[:find ?t :where
-                 [?t :team/mascot]])]
-    (let [team (d/touch (d/entity e))]
+                 [?t :team/mascot]] (db conn))]
+    (let [team (d/touch (d/entity (db conn) (first e)))]
       (is (:team/abbr team))
       (is (:team/name team))
       (is (:team/mascot team))
       (is (:db/id team)))))
+
+(comment ;; play area
+  (run-tests)
+  )
