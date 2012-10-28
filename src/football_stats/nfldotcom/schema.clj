@@ -13,7 +13,7 @@
 (defn create-metadata-txs []
   ;; Transaction data for team info.
   (for [[abbr team] (get-static-team-info)]
-    {:db/id #db/id[:db.part/user]
+    {:db/id (d/tempid :db.part/user)
      :team/abbr (:abbr team)
      :team/name (:city team)
      :team/mascot (:nickname team)}))
@@ -51,10 +51,10 @@
 
     ;; Game team
     {:db/id #db/id[:db.part/db]
-     :db/ident :game.team/abbr
-     :db/valueType :db.type/string
+     :db/ident :game.team/info
+     :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one
-     :db/doc "The team abbreviation."
+     :db/doc "The team's information."
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
@@ -247,6 +247,15 @@
 
 
 (defn test-db []
-  (let [uri "datomic:mem://test"]
-    (d/create-database uri)
-    (install-schema (d/connect uri))))
+  (let [uri "datomic:mem://test"
+        conn (do 
+               (d/delete-database uri)
+               (d/create-database uri)
+               (d/connect uri))
+        mydb (do
+               (install conn)
+               (db conn))]
+    (d/touch (d/entity mydb (first (first (q '[:find ?t :where [?t :team/abbr "GB"]] mydb)))))))
+
+(comment
+  (create-metadata-txs))

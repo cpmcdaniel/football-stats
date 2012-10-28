@@ -35,7 +35,7 @@
 
 (deftest test-home-team
   (let [home-team (:game/home (get-game))]
-    (is (= "GB" (:game.team/abbr home-team)))
+    (is (= "GB" (:team/abbr (:game.team/info home-team))))
     (is (= 1 (:game.team/to home-team)))))
 
 (deftest test-home-scoring
@@ -60,13 +60,20 @@
   )
 
 (deftest test-team-data
-  (doseq [e (q '[:find ?t :where
-                 [?t :team/mascot]] (db conn))]
-    (let [team (d/touch (d/entity (db conn) (first e)))]
-      (is (:team/abbr team))
-      (is (:team/name team))
-      (is (:team/mascot team))
-      (is (:db/id team)))))
+  (let [results (q '[:find ?t :where
+                     [?t :team/mascot]] (db conn))]
+    (is (= 32 (count results)))
+    (doseq [result results]
+      (let [team (d/touch (d/entity (db conn) (first result)))]
+        (is (:team/abbr team))
+        (is (:team/name team))
+        (is (:team/mascot team))
+        (is (:db/id team)))))
+  (is (= "Packers"
+         (:team/mascot
+          (d/entity
+           (db conn)
+           (get-team-id (db conn) "GB"))))))
 
 (comment ;; play area
   (run-tests)

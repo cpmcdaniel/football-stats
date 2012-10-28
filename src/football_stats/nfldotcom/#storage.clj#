@@ -14,7 +14,7 @@
 (defn get-team-id [db abbr]
   (first
    (first
-    (q '[:find ?t :in $ ?abbr :where [?t :team/abbr ?abbr]] db abbr))))
+    (q '[:find ?t :where [?t :team/abbr ]] db))))
 
 (comment ;; TODO refactor this
   (defn create-rushing-txs

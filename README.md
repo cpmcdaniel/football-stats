@@ -7,11 +7,10 @@ game data.
 
 ## TODO
 
-* Refactor game home team to link to the team instead of just using
-  the abbreviation. 
 * For storing game stats, create a function that finds or creates all
   the players from the game and returns a map of nflids -> entity ids
   for use in subsequent transactions.
+* Store game stats for players.
 * Apply same procedure to store visitor team stats.
 * Optionally store the scoring summary.
 * Optionally store the drive summaries.
