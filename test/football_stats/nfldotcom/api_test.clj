@@ -32,3 +32,13 @@
     (is (= "GB" (:abbr team-info)))
     (is (= "Green Bay" (:city team-info)))
     (is (= "Packers" (:nickname team-info)))))
+
+(deftest test-get-home-players
+  (let [home-players (get-home-players nflgame)]
+    (is (> (count home-players) 0))
+    (is (some #(= "A.Rodgers" %) (vals home-players)))))
+
+(deftest test-get-visitor-players
+  (let [visitor-players (get-visitor-players nflgame)]
+    (is (> (count visitor-players) 0))
+    (is (some #(= "D.Brees" %) (vals visitor-players)))))

@@ -39,7 +39,7 @@
    :score/ot (-> home-team :score :5)
    :score/final (-> home-team :score :T)})
 
-(defn create-team-txs
+(defn create-game-team-txs
   [db in-team game-team-id]
   (let [scoreid (d/tempid :db.part/user)]
    [{:db/id game-team-id
@@ -50,17 +50,35 @@
 
 (defn create-game-txs
   [db nflgame]
-  (let [gameid (get-gameid nflgame)
-        gamestats (gameid nflgame)
-        homeid (d/tempid :db.part/user)]
+  (let [homeid (d/tempid :db.part/user)]
      (cons
       {:db/id #db/id[:db.part/user -1]
-       :game/gameid (name gameid)
+       :game/gameid (name (get-gameid nflgame))
        :game/nflraw (prn-str nflgame)
        :game/home homeid}
-      (create-team-txs db (get-home-team gamestats) homeid))))
+      (create-game-team-txs db (get-home-team nflgame) homeid))))
 
-(defn store-game [nflgame conn]
+(defn create-player-txs
+  [team-id players]
+  (for [[player-id player-name] players]
+    [:create-player (name player-id) player-name team-id]))
+
+(defn store-players
+  [conn nflgame]
+  (let [db (d/db conn)
+        home-id (get-team-id db (-> nflgame get-home-team :abbr))
+        visitor-id (get-team-id db (-> nflgame get-visitor-team :abbr))]
+    ;; TODO is this a future?
+    @(d/transact
+     conn
+     (concat
+      (create-player-txs home-id (get-home-players nflgame))
+      (create-player-txs visitor-id (get-visitor-players nflgame))))))
+
+(defn store-game [conn nflgame]
+  ;; First, create new players, if needed.
+  ;; The subsequent tx can then lookup the players.
+  (store-players conn nflgame)
   (d/transact conn (create-game-txs (d/db conn) nflgame)))
 
 (defn find-player-by-nflid
@@ -72,31 +90,7 @@
     (q '[:find ?p :where
          [?p :player/nflid playerid]]))))
 
-;; Data/Tx functions
-;; if the parameter lists change, you will also need to change them
-;; in schema.clj
-(defn link-player
-  "Link to the player, if he exists. Otherwise, create the player
-   record and link to the new player."
-  [db
-   entity-to-link
-   attr-for-link
-   nfl-playerid
-   player-name
-   team]
-  (let [playerid (find-player-by-nflid db)]
-    (if (nil? playerid)
-      ;; create the player record
-      (let [new-playerid (d/tempid :db.part/user)]
-        [[:create-player new-playerid nfl-playerid player-name team]
-         [:db/add entity-to-link attr-for-link new-playerid]])
-      [[:db/add entity-to-link attr-for-link playerid]])))
 
-(defn create-player
-  [db e nflid name team]
-  [{:db/id e
-    :player/nflid nflid
-    :player/name name}])
 
 (comment
   ;; play area

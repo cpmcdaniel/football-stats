@@ -10,8 +10,15 @@
 (defn get-gameid [nflgameraw]
   (first (filter #(not (= :nextupdate %)) (keys nflgameraw))))
 
-(defn get-home-team [gamestats]
-  (:home gamestats))
+(defn to-game-stats [m]
+  (if (:home m) m
+      ((get-gameid m) m)))
+
+(defn get-home-team [game]
+  (:home (to-game-stats game)))
+
+(defn get-visitor-team [game]
+  (:away (to-game-stats game)))
 
 (defn replace-empty-keywords
   [json]
@@ -132,6 +139,25 @@
     (slurp
      (resource "football_stats/nfldotcom/team-data.json"))
     true)))
+
+(defn get-players-from-stats
+  [stat-lines]
+  (into {} (for [[player-id stat-line] stat-lines]
+             [player-id (:name stat-line)])))
+
+(defn get-team-players
+  [team-stats]
+  (if (map? team-stats)
+    (if (some #(re-find #"\d{2}-\d{7}" (name %)) (keys team-stats))
+      (get-players-from-stats team-stats)
+      (reduce merge (map get-team-players (vals team-stats))))
+    nil))
+
+(defn get-home-players [m]
+  (-> m to-game-stats :home get-team-players))
+
+(defn get-visitor-players [m]
+  (-> m to-game-stats :away get-team-players))
 
 (comment
   (taxi/with-driver {:browser :firefox}

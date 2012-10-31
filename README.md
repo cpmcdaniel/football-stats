@@ -7,10 +7,11 @@ game data.
 
 ## TODO
 
-* For storing game stats, create a function that finds or creates all
-  the players from the game and returns a map of nflids -> entity ids
-  for use in subsequent transactions.
+* Flatten the game entity.
+* Create a tx function that looks up the player by nflid and
+  adds the appropriate ref attribute.
 * Store game stats for players.
+* Resolve position for each player.
 * Apply same procedure to store visitor team stats.
 * Optionally store the scoring summary.
 * Optionally store the drive summaries.

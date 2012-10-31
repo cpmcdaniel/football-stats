@@ -17,7 +17,7 @@
   (d/create-database datomic-test-uri)
   (binding [conn (d/connect datomic-test-uri)]
     (install conn)
-    (store-game nflgame conn)
+    (store-game conn nflgame)
     (t)) ;; execute test
   )
 
@@ -47,18 +47,6 @@
     (is (= 0 (:score/ot scoring)))
     (is (= 42 (:score/final scoring)))))
 
-(comment
-  (deftest test-home-rushing-stats
-   (let [rushing-stats (-> (get-game)
-                           :game/home
-                           :game.team/stats
-                           :stats/rushing)]
-     (is (= 999 rushing-stats))))
-
-  (-> nflgame :2011090800 :home keys)
-
-  )
-
 (deftest test-team-data
   (let [results (q '[:find ?t :where
                      [?t :team/mascot]] (db conn))]
@@ -74,6 +62,10 @@
           (d/entity
            (db conn)
            (get-team-id (db conn) "GB"))))))
+
+(deftest test-player-data
+  (let [results (q '[:find ?p :where [?p :player/nflid]] (db conn))]
+    (is (= 55 (count results)))))
 
 (comment ;; play area
   (run-tests)
