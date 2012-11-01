@@ -33,57 +33,215 @@
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
-     :db/ident :game/home
-     :db/valueType :db.type/ref
-     :db/cardinality :db.cardinality/one
-     :db/doc "A Game's home team information."
-     :db.install/_attribute :db.part/db}
-
-    ;; Game team
-    {:db/id #db/id[:db.part/db]
-     :db/ident :game.team/info
-     :db/valueType :db.type/ref
-     :db/cardinality :db.cardinality/one
-     :db/doc "The team's information."
-     :db.install/_attribute :db.part/db}
-
-    {:db/id #db/id[:db.part/db]
-     :db/ident :game.team/to
+     :db/ident :game/season
      :db/valueType :db.type/long
      :db/cardinality :db.cardinality/one
-     :db/doc "The team's time-outs remaining."
+     :db/doc "The season that the game occurred in."
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
-     :db/ident :game.team/score
+     :db/ident :game/week
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/doc "The week that the game occurred in (ex: :REG3)."
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :game/date
+     :db/valueType :db.type/instant
+     :db/cardinality :db.cardinality/one
+     :db/doc "The date of the game."
+     :db.install/_attribute :db.part/db}
+
+    ;; Home team
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/team
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/doc "The home team."
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/score
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one
      :db/doc "The team's scoring by quarter."
      :db.install/_attribute :db.part/db}
 
+    ;; Home Stats
     {:db/id #db/id[:db.part/db]
-     :db/ident :game.team/stats
-     :db/valueType :db.type/ref
-     :db/cardinality :db.cardinality/one
-     :db/doc "The home team stats."
-     :db.install/_attribute :db.part/db}
-
-    ;; Stats
-    {:db/id #db/id[:db.part/db]
-     :db/ident :stats/rushing
+     :db/ident :home/rushing
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
      :db/doc "The team's rushing stats"
      :db.install/_attribute :db.part/db}
 
-    ;; Rushing
     {:db/id #db/id[:db.part/db]
-     :db/ident :rushing/player
+     :db/ident :home/passing
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's passing stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/receiving
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's receiving stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/kicking
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's kicking stats"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/defense
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's defensive stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/fumbles
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's fumble stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/puntret
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's punt return stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :home/kickret
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's kick return stats"
+     :db.install/_attribute :db.part/db}
+
+    ;; Away Stats
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/rushing
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's rushing stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/passing
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's passing stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/receiving
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's receiving stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/kicking
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's kicking stats"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/defense
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's defensive stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/fumbles
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's fumble stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/puntret
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's punt return stats"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/kickret
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/many
+     :db/doc "The team's kick return stats"
+     :db.install/_attribute :db.part/db}
+
+
+    ;; Player ref attribute for all stat entities.
+    {:db/id #db/id[:db.part/db]
+     :db/ident :stats/player
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one
      :db/doc "The player that these rushing stats belong to."
      :db.install/_attribute :db.part/db}
+
+    ;; Passing
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/yards
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing yards"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/attempts
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing attempts"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/complete
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing completions"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/tds
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing TDs"
+     :db.install/_attribute :db.part/db}
     
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/ints
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing interceptions"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/twopta
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing 2-pt attempts"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :passing/twoptm
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Passing 2-pt scores"
+     :db.install/_attribute :db.part/db}
+    
+    ;; Rushing
     {:db/id #db/id[:db.part/db]
      :db/ident :rushing/yards
      :db/valueType :db.type/long
@@ -120,20 +278,238 @@
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
-     :db/ident :rushing/twopt-attempts
+     :db/ident :rushing/twopta
      :db/valueType :db.type/long
      :db/cardinality :db.cardinality/one
      :db/doc "Rushing 2-pt attempts"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
-     :db/ident :rushing/twopt-made
+     :db/ident :rushing/twoptm
      :db/valueType :db.type/long
      :db/cardinality :db.cardinality/one
      :db/doc "Rushing 2-pt scores"
      :db.install/_attribute :db.part/db}
 
+    ;; Receiving
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/yards
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Receiving yards"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/receptions
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Receiving receptions"
+     :db.install/_attribute :db.part/db}
     
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/tds
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Receiving TDs"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/long
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Longest rush"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/longtd
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Longest receiving TD"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/twopta
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Receiving 2-pt attempts"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :receiving/twoptm
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Receiving 2-pt scores"
+     :db.install/_attribute :db.part/db}
+
+    ;; Kicking
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kicking/fg-attempts
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Kicking: field goals attempted"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kicking/fg-made
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Kicking: field goals made"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kicking/xp-attempts
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Kicking: extra points attempted"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kicking/xp-made
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Kicking: extra points made"
+     :db.install/_attribute :db.part/db}
+
+
+    ;; Defense
+    {:db/id #db/id[:db.part/db]
+     :db/ident :defense/sacks
+     :db/valueType :db.type/double
+     :db/cardinality :db.cardinality/one
+     :db/doc "Defense: sacks"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :defense/ints
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Defense: interceptions"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :defense/tackles
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Defense: tackles"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :defense/assists
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Defense: assists"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :defense/fumbles-forced
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Defense: fumbles-forced"
+     :db.install/_attribute :db.part/db}
+
+    ;; Fumbles
+    {:db/id #db/id[:db.part/db]
+     :db/ident :fumbles/lost
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Fumbles lost by player"
+     :db.install/_attribute :db.part/db}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :fumbles/recovered
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Fumbles recovered by player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :fumbles/total
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Total fumbles by player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :fumbles/trcv
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Total fumbles recovered by player (I think)"
+     :db.install/_attribute :db.part/db}
+
+    ;; Punt returns
+    {:db/id #db/id[:db.part/db]
+     :db/ident :puntret/returns
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Number of punt returns for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :puntret/tds
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Punt return TDs for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :puntret/long
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Punt return long for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :puntret/longtd
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Punt return long TD for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :puntret/avg
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Average punt return yardage for player"
+     :db.install/_attribute :db.part/db}
+
+    ;; Kick returns
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kickret/returns
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Number of kick returns for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kickret/tds
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Number of kick return TDs for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kickret/long
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Kick return long for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kickret/longtd
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Kick return long TD for player"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :kickret/avg
+     :db/valueType :db.type/long
+     :db/cardinality :db.cardinality/one
+     :db/doc "Average kick return yardage for player"
+     :db.install/_attribute :db.part/db}
+
+
     ;; Scoring
     {:db/id #db/id[:db.part/db]
      :db/ident :score/q1
@@ -209,15 +585,15 @@
 
     ;; Player positions
     {:db/id #db/id[:db.part/db]
-     :db/ident :position/QB}
+     :db/ident :QB}
     {:db/id #db/id[:db.part/db]
-     :db/ident :position/RB}
+     :db/ident :RB}
     {:db/id #db/id[:db.part/db]
-     :db/ident :position/WR}
+     :db/ident :WR}
     {:db/id #db/id[:db.part/db]
-     :db/ident :position/TE}
+     :db/ident :TE}
     {:db/id #db/id[:db.part/db]
-     :db/ident :position/K}
+     :db/ident :K}
         
     
     ;; Team
@@ -241,4 +617,59 @@
      :db/valueType :db.type/string
      :db/cardinality :db.cardinality/one
      :db/doc "The team's mascot"
-     :db.install/_attribute :db.part/db}]
+     :db.install/_attribute :db.part/db}
+
+    ;; Weeks
+    {:db/id #db/id[:db.part/db]
+     :db/ident :PRE0}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :PRE1}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :PRE2}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :PRE3}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :PRE4}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG1}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG2}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG3}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG4}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG5}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG6}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG7}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG8}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG9}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG10}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG11}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG12}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG13}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG14}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG15}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG16}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :REG17}    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :POST18}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :POST19}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :POST20}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :POST22} ;; pro-bowl
+    ]
