@@ -11,3 +11,15 @@
         football-stats.nfldotcom.api
         [football-stats.nfldotcom.schema :as schema]))
 
+(def nflgame (read-string (slurp "test/data/2011090800")))
+
+(def uri "datomic:mem://test")
+(def conn (do 
+            (d/delete-database uri)
+            (d/create-database uri)
+            (d/connect uri)))
+(def mydb (do
+            (install conn)
+            (db conn)))
+
+

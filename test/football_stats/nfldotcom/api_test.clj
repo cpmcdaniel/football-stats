@@ -38,7 +38,12 @@
     (is (> (count home-players) 0))
     (is (some #(= "A.Rodgers" %) (vals home-players)))))
 
-(deftest test-get-visitor-players
-  (let [visitor-players (get-visitor-players nflgame)]
-    (is (> (count visitor-players) 0))
-    (is (some #(= "D.Brees" %) (vals visitor-players)))))
+(deftest test-get-away-players
+  (let [away-players (get-away-players nflgame)]
+    (is (> (count away-players) 0))
+    (is (some #(= "D.Brees" %) (vals away-players)))))
+
+(deftest test-game-date
+  (let [sdf (new java.text.SimpleDateFormat "yyyyMMdd")
+        test-date (game-date nflgame)]
+    (is (=  (.substring (name (get-gameid nflgame)) 0 8) (.format sdf test-date)))))

@@ -65,7 +65,7 @@
      :db/ident :home/score
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/one
-     :db/doc "The team's scoring by quarter."
+     :db/doc "The home team's scoring by quarter."
      :db.install/_attribute :db.part/db}
 
     ;; Home Stats
@@ -73,113 +73,129 @@
      :db/ident :home/rushing
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's rushing stats"
+     :db/doc "The home team's rushing stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :home/passing
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's passing stats"
+     :db/doc "The home team's passing stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :home/receiving
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's receiving stats"
+     :db/doc "The home team's receiving stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :home/kicking
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's kicking stats"
+     :db/doc "The home team's kicking stats"
      :db.install/_attribute :db.part/db}
     
     {:db/id #db/id[:db.part/db]
      :db/ident :home/defense
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's defensive stats"
+     :db/doc "The home team's defensive stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :home/fumbles
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's fumble stats"
+     :db/doc "The home team's fumble stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :home/puntret
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's punt return stats"
+     :db/doc "The home team's punt return stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :home/kickret
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's kick return stats"
+     :db/doc "The home team's kick return stats"
      :db.install/_attribute :db.part/db}
+
+    ;; Away team
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/team
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/doc "The away team."
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :away/score
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/doc "The away team's scoring by quarter."
+     :db.install/_attribute :db.part/db}
+
 
     ;; Away Stats
     {:db/id #db/id[:db.part/db]
      :db/ident :away/rushing
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's rushing stats"
+     :db/doc "The away team's rushing stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :away/passing
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's passing stats"
+     :db/doc "The away team's passing stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :away/receiving
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's receiving stats"
+     :db/doc "The away team's receiving stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :away/kicking
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's kicking stats"
+     :db/doc "The away team's kicking stats"
      :db.install/_attribute :db.part/db}
     
     {:db/id #db/id[:db.part/db]
      :db/ident :away/defense
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's defensive stats"
+     :db/doc "The away team's defensive stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :away/fumbles
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's fumble stats"
+     :db/doc "The away team's fumble stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :away/puntret
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's punt return stats"
+     :db/doc "The away team's punt return stats"
      :db.install/_attribute :db.part/db}
 
     {:db/id #db/id[:db.part/db]
      :db/ident :away/kickret
      :db/valueType :db.type/ref
      :db/cardinality :db.cardinality/many
-     :db/doc "The team's kick return stats"
+     :db/doc "The away team's kick return stats"
      :db.install/_attribute :db.part/db}
 
 

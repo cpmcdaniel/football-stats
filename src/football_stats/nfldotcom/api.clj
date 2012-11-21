@@ -17,7 +17,7 @@
 (defn get-home-team [game]
   (:home (to-game-stats game)))
 
-(defn get-visitor-team [game]
+(defn get-away-team [game]
   (:away (to-game-stats game)))
 
 (defn replace-empty-keywords
@@ -156,8 +156,13 @@
 (defn get-home-players [m]
   (-> m to-game-stats :home get-team-players))
 
-(defn get-visitor-players [m]
+(defn get-away-players [m]
   (-> m to-game-stats :away get-team-players))
+
+(defn game-date [g]
+  (if (map? g) (game-date (get-gameid g))
+      (let [sdf (new java.text.SimpleDateFormat "yyyyMMdd")]
+        (.parse sdf (.substring (name g) 0 8)))))
 
 (comment
   (taxi/with-driver {:browser :firefox}

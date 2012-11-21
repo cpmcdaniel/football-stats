@@ -7,13 +7,10 @@ game data.
 
 ## TODO
 
-* Flatten the game entity.
-* Create a tx function that looks up the player by nflid and
-  adds the appropriate ref attribute.
-* Store game stats for players.
+* Clean up storage.clj
+  * Try to find declarative way to map NFL JSON to Datomic schema.
+  * Remove duplication
 * Resolve position for each player.
-* Apply same procedure to store visitor team stats.
-* Optionally store the scoring summary.
 * Optionally store the drive summaries.
 
 

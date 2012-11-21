@@ -16,47 +16,191 @@
    (first
     (q '[:find ?t :in $ ?abbr :where [?t :team/abbr ?abbr]] db abbr))))
 
-(comment ;; TODO refactor this
-  (defn create-rushing-txs
-    [rushing-stats]
-    (for [[playerid stats] rushing-stats]
-      {:db/id #db/id[:db.part/user]
-       :rushing/yards (:yds stats)
-       :rushing/attempts (:att stats)
-       :rushing/tds (:tds stats)
-       :rushing/long (:lng stats)
-       :rushing/longtd (:lngtd stats)
-       :rushing/twopt-attempts (:twopta stats)
-       :rushing/twopt-made (:twoptm stats)})))
+(defn get-player-id [db nflid]
+  (first
+   (first
+    (q '[:find ?p :in $ ?pid :where [?p :player/nflid ?pid]]
+       db nflid))))
+
 
 (defn create-score-tx
-  [home-team score-id]
+  [team score-id]
   {:db/id score-id
-   :score/q1 (-> home-team :score :1)
-   :score/q2 (-> home-team :score :2)
-   :score/q3 (-> home-team :score :3)
-   :score/q4 (-> home-team :score :4)
-   :score/ot (-> home-team :score :5)
-   :score/final (-> home-team :score :T)})
+   :score/q1 (-> team :score :1)
+   :score/q2 (-> team :score :2)
+   :score/q3 (-> team :score :3)
+   :score/q4 (-> team :score :4)
+   :score/ot (-> team :score :5)
+   :score/final (-> team :score :T)})
 
-(defn create-game-team-txs
-  [db in-team game-team-id]
+(defn- prepare-stats [db stat-line]
+  {:player-id (get-player-id db (name (first stat-line)))
+   :stats (second stat-line)
+   :stats-id (d/tempid :db.part/user)})
+
+(defn- create-passing-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :passing/attempts (:att stats)
+      :passing/complete (:cmp stats)
+      :passing/yards (:yds stats)
+      :passing/tds (:tds stats)
+      :passing/ints (:ints stats)
+      :passing/twopta (:twopta stats)
+      :passing/twoptm (:twoptm stats)}
+     [:db/add db-gameid (keyword-fn "passing") stats-id]]))
+
+(defn- create-rushing-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :rushing/yards (:yds stats)
+      :rushing/attempts (:att stats)
+      :rushing/tds (:tds stats)
+      :rushing/long (:lng stats)
+      :rushing/longtd (:lngtd stats)
+      :rushing/twopta (:twopta stats)
+      :rushing/twoptm (:twoptm stats)}
+     [:db/add db-gameid (keyword-fn "rushing") stats-id]]))
+
+(defn- create-receiving-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :receiving/receptions (:rec stats)
+      :receiving/yards (:yds stats)
+      :receiving/tds (:tds stats)
+      :receiving/long (:lng stats)
+      :receiving/longtd (:lngtd stats)
+      :receiving/twopta (:twopta stats)
+      :receiving/twoptm (:twoptm stats)}
+     [:db/add db-gameid (keyword-fn "receiving") stats-id]]))
+
+(defn- create-kicking-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :kicking/fg-attempts (:fga stats)
+      :kicking/fg-made (:fgm stats)
+      :kicking/xp-attempts (:xpa stats)
+      :kicking/xp-made (:xpmade stats)}
+     [:db/add db-gameid (keyword-fn "kicking") stats-id]]))
+
+(defn- create-puntret-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :puntret/returns (:ret stats)
+      :puntret/tds (:tds stats)
+      :puntret/long (:lng stats)
+      :puntret/avg (:avg stats)
+      :puntret/longtd (:lngtd stats)}
+     [:db/add db-gameid (keyword-fn "puntret") stats-id]]))
+
+(defn- create-kickret-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :kickret/returns (:ret stats)
+      :kickret/tds (:tds stats)
+      :kickret/long (:lng stats)
+      :kickret/avg (:avg stats)
+      :kickret/longtd (:lngtd stats)}
+     [:db/add db-gameid (keyword-fn "kickret") stats-id]]))
+
+(defn- create-defense-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :defense/sacks (double (:sk stats))
+      :defense/ints (:int stats)
+      :defense/tackles (:tkl stats)
+      :defense/assists (:ast stats)
+      :defense/fumbles-forced (:ffum stats)}
+     [:db/add db-gameid (keyword-fn "defense") stats-id]]))
+
+(defn- create-fumbles-txs
+  [keyword-fn db db-gameid stat-line]
+  (let [{:keys [player-id stats stats-id]}
+        (prepare-stats db stat-line)]
+    [{:db/id stats-id
+      :stats/player player-id
+      :fumbles/lost (:lost stats)
+      :fumbles/recovered (:rcv stats)
+      :fumbles/total (:tot stats)
+      :fumbles/trcv (:trcv stats)}
+     [:db/add db-gameid (keyword-fn "fumbles") stats-id]]))
+
+
+(defn- create-stats-txs [stat-fn stats]
+  (reduce concat (map stat-fn stats)))
+
+(defn- create-game-team-txs
+  [keyword-fn db team-data db-gameid]
   (let [scoreid (d/tempid :db.part/user)]
-   [{:db/id game-team-id
-     :game.team/info (get-team-id db (:abbr in-team))
-     :game.team/to (:to in-team)
-     :game.team/score scoreid}
-    (create-score-tx in-team scoreid)]))
+    (concat
+     [[:db/add db-gameid (keyword-fn "team") (get-team-id db (:abbr team-data))]
+      (create-score-tx team-data scoreid)
+      [:db/add db-gameid (keyword-fn "score") scoreid]]
+     (create-stats-txs
+      (partial create-rushing-txs keyword-fn db db-gameid)
+      (-> team-data :stats :rushing))
+     (create-stats-txs
+      (partial create-passing-txs keyword-fn db db-gameid)
+      (-> team-data :stats :passing))
+     (create-stats-txs
+      (partial create-receiving-txs keyword-fn db db-gameid)
+      (-> team-data :stats :receiving))
+     (create-stats-txs
+       (partial create-kicking-txs keyword-fn db db-gameid)
+       (-> team-data :stats :kicking))
+     (create-stats-txs
+       (partial create-puntret-txs keyword-fn db db-gameid)
+       (-> team-data :stats :puntret))
+     (create-stats-txs
+       (partial create-kickret-txs keyword-fn db db-gameid)
+       (-> team-data :stats :kickret))
+     (create-stats-txs
+       (partial create-defense-txs keyword-fn db db-gameid)
+       (-> team-data :stats :defense))
+     (create-stats-txs
+       (partial create-fumbles-txs keyword-fn db db-gameid)
+       (-> team-data :stats :fumbles)))))
+
+(def create-home-team-txs
+  (partial create-game-team-txs #(keyword (str "home/" %))))
+
+(def create-away-team-txs
+  (partial create-game-team-txs #(keyword (str "away/" %))))
 
 (defn create-game-txs
   [db nflgame]
-  (let [homeid (d/tempid :db.part/user)]
+  (let [db-gameid (d/tempid :db.part/user)]
      (cons
-      {:db/id #db/id[:db.part/user -1]
+      {:db/id db-gameid
        :game/gameid (name (get-gameid nflgame))
        :game/nflraw (prn-str nflgame)
-       :game/home homeid}
-      (create-game-team-txs db (get-home-team nflgame) homeid))))
+       ;:game/season (:season nflgame)
+       ;:game/week (:week nflgame)
+       :game/date (game-date nflgame)}
+      (concat 
+       (create-home-team-txs db (get-home-team nflgame) db-gameid)
+       (create-away-team-txs db (get-away-team nflgame) db-gameid)))))
 
 (defn create-player-txs
   [team-id players]
@@ -67,13 +211,12 @@
   [conn nflgame]
   (let [db (d/db conn)
         home-id (get-team-id db (-> nflgame get-home-team :abbr))
-        visitor-id (get-team-id db (-> nflgame get-visitor-team :abbr))]
-    ;; TODO is this a future?
+        away-id (get-team-id db (-> nflgame get-away-team :abbr))]
     @(d/transact
      conn
      (concat
       (create-player-txs home-id (get-home-players nflgame))
-      (create-player-txs visitor-id (get-visitor-players nflgame))))))
+      (create-player-txs away-id (get-away-players nflgame))))))
 
 (defn store-game [conn nflgame]
   ;; First, create new players, if needed.
@@ -92,14 +235,3 @@
 
 
 
-(comment
-  ;; play area
-  (def txs
-   (let [nflgame (read-string (slurp "test/data/2011090800"))
-         home-team (-> nflgame :2011090800 :home)]
-
-     (create-game-txs nflgame)))
-
-  (-> txs rest)
-
-  )
