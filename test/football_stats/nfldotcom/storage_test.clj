@@ -1,15 +1,19 @@
 (ns football-stats.nfldotcom.storage-test
-  (:use clojure.test
-        football-stats.nfldotcom.storage
-        [football-stats.nfldotcom.schema :only [install]]
-        [datomic.api :only [q db] :as d]))
+  (:require [clojure.test :refer :all]
+            [football-stats.nfldotcom.storage :refer :all]
+            [football-stats.nfldotcom.schema :refer [install]]
+            [datomic.api :as d :refer [q db]])
+  (:import [football_stats.nfldotcom.api Game]))
 
 (def ^:dynamic conn)
 
 (def datomic-test-uri "datomic:mem://test")
 
-(def nflgame (read-string (slurp "test/data/2011090800")))
-
+(def nflgame (Game.
+              2011
+              "REG3"
+              "2011090800"
+              (read-string (slurp "test/data/2011090800"))))
 
 (defn datomic-fixture [t]
   ;; Setup
@@ -154,3 +158,8 @@
      :kickret/long
      :kickret/avg
      :kickret/longtd]))
+
+(deftest test-get-save-directory-default
+  (is (= "./stats" (get-save-directory))))
+
+#_(run-tests)

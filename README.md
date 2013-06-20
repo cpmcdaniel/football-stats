@@ -12,7 +12,8 @@ game data.
   * Remove duplication
 * Resolve position for each player.
 * Optionally store the drive summaries.
-
+* Lamina channel for controlling nfl.com scraper (send season or [season week]).
+* Function for reading the JSON off the filesystem and feeding to datomic storage channel.
 
 ## Usage
 

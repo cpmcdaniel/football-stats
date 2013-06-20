@@ -13,3 +13,5 @@ pom.xml
 /.settings
 /bin
 /.externalToolBuilders
+/stats
+.lein-repl-history

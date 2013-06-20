@@ -1,11 +1,14 @@
 (ns football-stats.nfldotcom.api
   (:require [clj-webdriver.taxi :as taxi]
             [clj-http.client :as http]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [lamina.core :as l])
   (:use [clj-http.util :only [url-encode]]
         [clojure.java.io :only [file make-parents resource]]
         [cheshire.core :only [parse-string]]
         retry.core))
+
+(defrecord Game [season week gameid stats])
 
 (defn get-gameid [nflgameraw]
   (first (filter #(not (= :nextupdate %)) (keys nflgameraw))))
@@ -26,7 +29,7 @@
 
 (defn get-game-stats
   "Gets game stats as a Clojure map (converted directly from JSON)"
-  [^String gameid]
+  [{:keys [gameid] :as game}]
   (loop [sleep 1]
     (when (< 1 sleep) (println (str "Sleeping for " sleep " second(s).")))
     (Thread/sleep (* 1000 sleep))
@@ -36,9 +39,10 @@
             "http://www.nfl.com/liveupdate/game-center/%s/%s_gtd.json"
             gameid gameid) {:accept :json :as :json :throw-exceptions false})]
       (if (http/success? response)
-        (replace-empty-keywords (:body response))
+        (assoc game :stats (replace-empty-keywords (:body response)))
         (if (< 4 sleep)
-          (println (str "Giving up on game " gameid))
+          (do (println (str "Giving up on game " gameid))
+              game)
           (recur (inc sleep)))))))
 
 
@@ -88,45 +92,28 @@
   [links]
   (map link->game-center-id links))
 
-(defn game-center-seasons
-  "Gets all game center ids for the specified seasons. Returns
-    a lazy sequence of vectors containing [season week gameid]."
+(defn game-center-games
+  "Gets all game records for the specified seasons. Returns
+    a lazy sequence of Games."
   [seasons]
   (for [season seasons
         week (game-center-season-weeks season)
         gameid (links->game-center-ids
                 (scrape-game-center-links season week))]
-    [season week gameid]))
+    (Game. season week gameid {})))
 
-(defn get-save-directory
-  "Gets the value of the stats.dir system property. Defaults
-    to './stats' if the property isn't set."
-  []
-  (System/getProperty "stats.dir" "./stats"))
-
-(defn game-directory
-  "Gets the directory for the specified season and week.
-    Creates the directory if it does not exist."
-  [season week gameid]
-  (let [game-dir (file (get-save-directory) (str season) week)]
-    (when-not (.exists game-dir) (make-parents game-dir gameid))
-    game-dir))
-
-(defn save-game-stats
+(defn save-games
   "Takes a sequence of games. Requests the stats and saves
     them for each game."
-  [games]
-  (doseq [[season week gameid] games]
-    (println (format "Saving game %d %s %s" season week gameid))
-    (when-let [game-stats (get-game-stats gameid)]
-      (let [game-file (file (game-directory season week gameid) gameid)]
-        (spit game-file (pr-str game-stats))))))
+  [games storage-channel]
+  (doseq [game games]
+    (l/enqueue storage-channel (get-game-stats game))))
 
 (defn save-seasons
   "Saves stats to the file system for all games in the specified seasons."
-  [seasons]
+  [seasons storage-channel]
   (taxi/with-driver {:browser :firefox}
-    (save-game-stats (game-center-seasons seasons))))
+    (save-games (game-center-games seasons) storage-channel)))
 
 (defn driver []
   (taxi/set-driver! {:browser :firefox}))
@@ -166,5 +153,6 @@
 
 (comment
   (taxi/with-driver {:browser :firefox}
-    (get-game-stats (first (game-center-ids (game-center-links 2012 "REG8")))))
+    (let [season 2012 week "REG8"]
+      (get-game-stats (Game. season week (first (links->game-center-ids (scrape-game-center-links season week))) {}))))
   )

@@ -1,6 +1,6 @@
 (ns football-stats.nfldotcom.api-test
-  (:use clojure.test
-        football-stats.nfldotcom.api))
+  (:require [clojure.test :refer :all]
+            [football-stats.nfldotcom.api :refer :all]))
 
 (def nflgame (read-string (slurp "test/data/2011090800")))
 
@@ -16,9 +16,6 @@
    (= "2011090800"
       (link->game-center-id 
        "http://www.nfl.com/gamecenter/2011090800/2011/REG1/saints@packers"))))
-
-(deftest test-get-save-directory-default
-  (is (= "./stats" (get-save-directory))))
 
 (deftest test-get-gameid
   (is (= :2011090800 (get-gameid nflgame))))
@@ -47,3 +44,5 @@
   (let [sdf (new java.text.SimpleDateFormat "yyyyMMdd")
         test-date (game-date nflgame)]
     (is (=  (.substring (name (get-gameid nflgame)) 0 8) (.format sdf test-date)))))
+
+#_(run-tests)

@@ -1,6 +1,8 @@
 (ns football-stats.nfldotcom.storage
-  (:use [datomic.api :only [q] :as d]
-        football-stats.nfldotcom.api))
+  (:require [datomic.api :refer [q] :as d]
+            [football-stats.nfldotcom.api :refer :all]
+            [lamina.core :as l]
+            [clojure.java.io :as io]))
 
 (defn get-db-ids [txs]
   (hash-set
@@ -189,18 +191,18 @@
   (partial create-game-team-txs #(keyword (str "away/" %))))
 
 (defn create-game-txs
-  [db nflgame]
+  [db {:keys [season week gameid stats] :as game}]
   (let [db-gameid (d/tempid :db.part/user)]
      (cons
       {:db/id db-gameid
-       :game/gameid (name (get-gameid nflgame))
-       :game/nflraw (prn-str nflgame)
-       ;:game/season (:season nflgame)
-       ;:game/week (:week nflgame)
-       :game/date (game-date nflgame)}
+       :game/gameid gameid
+       :game/nflraw (prn-str stats)
+       :game/season season
+       :game/week week
+       :game/date (game-date stats)}
       (concat 
-       (create-home-team-txs db (get-home-team nflgame) db-gameid)
-       (create-away-team-txs db (get-away-team nflgame) db-gameid)))))
+       (create-home-team-txs db (get-home-team stats) db-gameid)
+       (create-away-team-txs db (get-away-team stats) db-gameid)))))
 
 (defn create-player-txs
   [team-id players]
@@ -218,11 +220,11 @@
       (create-player-txs home-id (get-home-players nflgame))
       (create-player-txs away-id (get-away-players nflgame))))))
 
-(defn store-game [conn nflgame]
+(defn store-game [conn {:keys [stats] :as game}]
   ;; First, create new players, if needed.
   ;; The subsequent tx can then lookup the players.
-  (store-players conn nflgame)
-  (d/transact conn (create-game-txs (d/db conn) nflgame)))
+  (store-players conn stats)
+  (d/transact conn (create-game-txs (d/db conn) game)))
 
 (defn find-player-by-nflid
   "Finds the player entity for the specified nfl.com player id.
@@ -233,5 +235,55 @@
     (q '[:find ?p :where
          [?p :player/nflid playerid]]))))
 
+(defn get-save-directory
+  "Gets the value of the stats.dir system property. Defaults
+    to './stats' if the property isn't set."
+  []
+  (System/getProperty "stats.dir" "./stats"))
 
+(defn game-directory
+  "Gets the directory for the specified season and week.
+    Creates the directory if it does not exist."
+  [{:keys [season week gameid]}]
+  (let [game-dir (io/file (get-save-directory) (str season) week)]
+    (when-not (.exists game-dir) (io/make-parents game-dir gameid))
+    game-dir))
 
+(defn save-game-to-file
+  "Takes a game record and saves it to a file."
+  [{:keys [season week gameid stats] :as game}]
+  (when (and season week gameid stats)
+    (println (format "Saving game %d %s %s" season week gameid))
+    (let [game-file (io/file (game-directory game) gameid)]
+      (spit game-file (pr-str game)))))
+
+(defn create-file-channel
+  "Creates a lamina channel for storing a game to a file."
+  [storage-channel]
+  (let [file-channel (l/sink save-game-to-file)]
+    (l/siphon (l/fork storage-channel) file-channel)
+    file-channel))
+
+(defn create-datomic-channel
+  "Creates a lamina channel for storing a game in the database."
+  [conn storage-channel]
+  (let [datomic-channel
+        (l/sink (fn [game]
+                  (store-game conn game)))]
+    (l/siphon (l/fork storage-channel) datomic-channel)
+    datomic-channel))
+
+(defn create-storage-channels
+  "Creates the lamina channels for storage and returns them in a map."
+  [conn]
+  (let [storage-channel (l/channel)]
+    {:storage-channel storage-channel
+     :file-channel (create-file-channel storage-channel)
+     :datomic-channel (create-datomic-channel conn storage-channel)}))
+
+(defn close-storage-channels
+  "Closes all storage channels"
+  [{:keys [storage-channel file-channel datomic-channel]}]
+  (l/close datomic-channel)
+  (l/close file-channel)
+  (l/close storage-channel))
