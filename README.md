@@ -1,4 +1,4 @@
-# football-stats
+https://www.archlinux.org/# football-stats
 
 football-stats provides an API for accessing and storing NFL Regular
 season statistics. The current target is a Datomic backend. With this
@@ -12,7 +12,6 @@ game data.
   * Remove duplication
 * Resolve position for each player.
 * Optionally store the drive summaries.
-* Lamina channel for controlling nfl.com scraper (send season or [season week]).
 * Function for reading the JSON off the filesystem and feeding to datomic storage channel.
 
 ## Usage

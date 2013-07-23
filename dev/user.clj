@@ -4,6 +4,7 @@
             [clojure.pprint :refer (pprint)]
             [clojure.repl :refer :all]
             [clojure.test :as test]
+            [clojure.tools.logging :as log]
             [clojure.tools.namespace.repl :refer (refresh refresh-all)]
             [clj-webdriver.taxi :as taxi]
             [clj-http.client :as http]

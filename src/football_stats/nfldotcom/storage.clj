@@ -1,5 +1,6 @@
 (ns football-stats.nfldotcom.storage
   (:require [datomic.api :refer [q] :as d]
+            [clojure.tools.logging :refer [debugf info error]]
             [football-stats.nfldotcom.api :refer :all]
             [lamina.core :as l]
             [clojure.java.io :as io]))
@@ -220,9 +221,10 @@
       (create-player-txs home-id (get-home-players nflgame))
       (create-player-txs away-id (get-away-players nflgame))))))
 
-(defn store-game [conn {:keys [stats] :as game}]
+(defn store-game [conn {:keys [stats season week gameid] :as game}]
   ;; First, create new players, if needed.
   ;; The subsequent tx can then lookup the players.
+  (debugf "Saving game %d %s %s in db" season week gameid)
   (store-players conn stats)
   (d/transact conn (create-game-txs (d/db conn) game)))
 
@@ -253,7 +255,7 @@
   "Takes a game record and saves it to a file."
   [{:keys [season week gameid stats] :as game}]
   (when (and season week gameid stats)
-    (println (format "Saving game %d %s %s" season week gameid))
+    (debugf "Saving game %d %s %s to file" season week gameid)
     (let [game-file (io/file (game-directory game) gameid)]
       (spit game-file (pr-str game)))))
 
@@ -276,7 +278,9 @@
 (defn create-storage-channels
   "Creates the lamina channels for storage and returns them in a map."
   [conn]
-  (let [storage-channel (l/channel)]
+  (let [storage-channel (->>
+                         (l/channel)
+                         (l/filter* #(not-empty (:stats %))))]
     {:storage-channel storage-channel
      :file-channel (create-file-channel storage-channel)
      :datomic-channel (create-datomic-channel conn storage-channel)}))
@@ -287,3 +291,22 @@
   (l/close datomic-channel)
   (l/close file-channel)
   (l/close storage-channel))
+
+
+(defn file->game
+  [^java.io.File file]
+  (read-string (slurp file)))
+
+(defn files->games
+  []
+  (->> (get-save-directory)
+       io/file
+       file-seq
+       (filter #(.isFile %))
+       sort
+       (map file->game)))
+
+(defn files->datomic
+  [datomic-channel]
+  (doseq [game (files->games)]
+    (l/enqueue datomic-channel game)))

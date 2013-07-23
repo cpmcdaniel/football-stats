@@ -2,7 +2,8 @@
   (:require [clj-webdriver.taxi :as taxi]
             [clj-http.client :as http]
             [clojure.walk :as walk]
-            [lamina.core :as l])
+            [lamina.core :as l]
+            [clojure.tools.logging :refer [debug warn]])
   (:use [clj-http.util :only [url-encode]]
         [clojure.java.io :only [file make-parents resource]]
         [cheshire.core :only [parse-string]]
@@ -31,7 +32,7 @@
   "Gets game stats as a Clojure map (converted directly from JSON)"
   [{:keys [gameid] :as game}]
   (loop [sleep 1]
-    (when (< 1 sleep) (println (str "Sleeping for " sleep " second(s).")))
+    (when (< 1 sleep) (debug "Sleeping for " sleep " second(s)."))
     (Thread/sleep (* 1000 sleep))
     (let [response
           (http/get
@@ -40,8 +41,8 @@
             gameid gameid) {:accept :json :as :json :throw-exceptions false})]
       (if (http/success? response)
         (assoc game :stats (replace-empty-keywords (:body response)))
-        (if (< 4 sleep)
-          (do (println (str "Giving up on game " gameid))
+        (if (or (http/missing? response) (< 4 sleep))
+          (do (warn "Giving up on game" gameid)
               game)
           (recur (inc sleep)))))))
 
@@ -49,38 +50,38 @@
 (defn- goto-weekly-stats
   "Goes to the weekly stats page for the specified Season and Week.
     The Week param should be one of: PRE[1-4], REG[1-17], POST[18-20,22], PRO21"
-  [season week]
+  [{:keys [season week web-driver]}]
   ;; TODO Check preconditions for both season and week
-  (taxi/to (str "http://www.nfl.com/scores/" (url-encode (str season)) "/" (url-encode (str week)))))
+  (taxi/to web-driver (str "http://www.nfl.com/scores/" (url-encode (str season)) "/" (url-encode (str week)))))
 
 (defn- week-from-link
   "Extracts the week from the anchor tag."
-  [anchor]
-  (let [link (taxi/attribute anchor :href)]
+  [web-driver anchor]
+  (let [link (taxi/attribute web-driver anchor :href)]
     (second (re-find #"/(\w+)$" link))))
 
 (defn- find-weeks
   "Finds the links to each weekly stats page."
-  []
-  (taxi/find-elements {:css "a.week-item"}))
+  [web-driver]
+  (taxi/find-elements web-driver {:css "a.week-item"}))
 
 (defn game-center-season-weeks
   "Gets all week names for the specified season."
-  [season]
-  (goto-weekly-stats season "REG1")
+  [{:keys [web-driver season] :as context}]
+  (goto-weekly-stats (assoc context :week "REG1"))
   (doall
    ;; The web-driver does not work well with lazy seqs.
-   (map week-from-link (find-weeks))))
+   (map (partial week-from-link web-driver) (find-weeks web-driver))))
 
-(defn- find-game-centers []
-  (taxi/find-elements {:css "a.game-center-link"}))
+(defn- find-game-centers [web-driver]
+  (taxi/find-elements web-driver {:css "a.game-center-link"}))
 
 (defn scrape-game-center-links
   "Gets all the Game Center link elements on the page as seq"
-  [season week]
-  (goto-weekly-stats season week)
+  [{:keys [season week web-driver] :as context}]
+  (goto-weekly-stats context)
   (doall ;; the web-driver doesn't play nice with lazy seqs
-   (map #(taxi/attribute % :href) (find-game-centers))))
+   (map #(taxi/attribute web-driver % :href) (find-game-centers web-driver))))
 
 (defn link->game-center-id
   "Extract game id from the game center link"
@@ -95,11 +96,12 @@
 (defn game-center-games
   "Gets all game records for the specified seasons. Returns
     a lazy sequence of Games."
-  [seasons]
+  [web-driver seasons]
   (for [season seasons
-        week (game-center-season-weeks season)
+        week (game-center-season-weeks {:season season :web-driver web-driver})
         gameid (links->game-center-ids
-                (scrape-game-center-links season week))]
+                (scrape-game-center-links {:season season :week week
+                                           :web-driver web-driver}))]
     (Game. season week gameid {})))
 
 (defn save-games
@@ -109,14 +111,14 @@
   (doseq [game games]
     (l/enqueue storage-channel (get-game-stats game))))
 
-(defn save-seasons
-  "Saves stats to the file system for all games in the specified seasons."
-  [seasons storage-channel]
-  (taxi/with-driver {:browser :firefox}
-    (save-games (game-center-games seasons) storage-channel)))
-
-(defn driver []
-  (taxi/set-driver! {:browser :firefox}))
+(defn save-seasons-from-web
+  "Saves stats for all games in the specified seasons."
+  [system seasons]
+  (let [web-driver (taxi/new-driver {:browser :firefox})]
+    (doseq [season seasons]
+      (l/enqueue (:season-channel system)
+                 {:season season :web-driver web-driver}))
+    (taxi/close web-driver)))
 
 (defn get-team-info
   "Gets the team information for the given team abbreviation."
@@ -151,8 +153,42 @@
       (let [sdf (new java.text.SimpleDateFormat "yyyyMMdd")]
         (.parse sdf (.substring (name g) 0 8)))))
 
-(comment
-  (taxi/with-driver {:browser :firefox}
-    (let [season 2012 week "REG8"]
-      (get-game-stats (Game. season week (first (links->game-center-ids (scrape-game-center-links season week))) {}))))
-  )
+(defn create-week-channel
+  "Receives a message with :season and :week keys and uses web-driver to scrape the game center ids. It then constructs Game records and sends them to the storage channel"
+  [storage-channel]
+  (l/sink->>
+   (l/filter* #(not (.startsWith (:week %) "PRO"))) ;; Ignore pro-bowl
+   (fn [{:keys [season week web-driver] :as message}]
+     (doseq [gameid (links->game-center-ids
+                     (scrape-game-center-links message))]
+       (l/enqueue storage-channel
+                  (get-game-stats (Game. season week gameid {})))))))
+
+(defn create-season-channel
+  "Receives a message with a specified season, requests all weeks for that season, then sends a request for each week onto the week-channel."
+  [week-channel]
+  (l/sink (fn [{:keys [season web-driver] :as message}]
+            (doseq [week (game-center-season-weeks message)]
+              (l/enqueue week-channel (assoc message :week week))))))
+
+(defn- download-seasons
+  "Enqueues each season on the given channel with the given web-driver"
+  [season-channel web-driver & seasons]
+  (doseq [season seasons]
+    (l/enqueue season-channel
+               {:web-driver web-driver
+                :season season})))
+
+(defn create-driver-channels
+  "Creates all web-driver channels."
+  [storage-channel]
+  (let [week-channel (create-week-channel storage-channel)
+        season-channel (create-season-channel week-channel)]
+    {:week-channel week-channel
+     :season-channel season-channel
+     :download-seasons (partial download-seasons season-channel)}))
+
+(defn close-driver-channels
+  [{:keys [week-channel season-channel]}]
+  (l/close week-channel)
+  (l/close season-channel))
