@@ -12,21 +12,17 @@
 (defrecord Game [season week gameid stats])
 
 (defn get-gameid [nflgameraw]
-  (first (filter #(not (= :nextupdate %)) (keys nflgameraw))))
+  (first (filter #(not (= "nextupdate" %)) (keys nflgameraw))))
 
 (defn to-game-stats [m]
-  (if (:home m) m
-      ((get-gameid m) m)))
+  (if (get m "home") m
+      (get m (get-gameid m))))
 
 (defn get-home-team [game]
-  (:home (to-game-stats game)))
+  (get (to-game-stats game) "home"))
 
 (defn get-away-team [game]
-  (:away (to-game-stats game)))
-
-(defn replace-empty-keywords
-  [json]
-  (walk/postwalk-replace {(keyword "") :_} json))
+  (get (to-game-stats game) "away"))
 
 (defn get-game-stats
   "Gets game stats as a Clojure map (converted directly from JSON)"
@@ -38,9 +34,9 @@
           (http/get
            (format
             "http://www.nfl.com/liveupdate/game-center/%s/%s_gtd.json"
-            gameid gameid) {:accept :json :as :json :throw-exceptions false})]
+            gameid gameid) {:accept :json :as :json-string-keys :throw-exceptions false})]
       (if (http/success? response)
-        (assoc game :stats (replace-empty-keywords (:body response)))
+        (assoc game :stats (:body response))
         (if (or (http/missing? response) (< 4 sleep))
           (do (warn "Giving up on game" gameid)
               game)
@@ -132,21 +128,23 @@
 (defn get-players-from-stats
   [stat-lines]
   (into {} (for [[player-id stat-line] stat-lines]
-             [player-id (:name stat-line)])))
+             [player-id (get stat-line "name")])))
 
 (defn get-team-players
   [team-stats]
   (if (map? team-stats)
-    (if (some #(re-find #"\d{2}-\d{7}" (name %)) (keys team-stats))
+    (if (some #(re-find #"\d{2}-\d{7}" %) (keys team-stats))
       (get-players-from-stats team-stats)
       (reduce merge (map get-team-players (vals team-stats))))
     nil))
 
 (defn get-home-players [m]
-  (-> m to-game-stats :home get-team-players))
+  (-> m to-game-stats
+      (get "home") get-team-players))
 
 (defn get-away-players [m]
-  (-> m to-game-stats :away get-team-players))
+  (-> m to-game-stats
+      (get "away") get-team-players))
 
 (defn game-date [g]
   (if (map? g) (game-date (get-gameid g))
