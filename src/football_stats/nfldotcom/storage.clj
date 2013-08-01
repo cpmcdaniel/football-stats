@@ -30,12 +30,12 @@
   [team score-id]
   (let [score (team "score")]
    {:db/id score-id
-    :score/q1 (score "1")
-    :score/q2 (score "2")
-    :score/q3 (score "3")
-    :score/q4 (score "4")
-    :score/ot (score "5")
-    :score/final (score "T")}))
+    :score/q1 (get score "1" 0)
+    :score/q2 (get score "2" 0)
+    :score/q3 (get score "3" 0)
+    :score/q4 (get score "4" 0)
+    :score/ot (get score "5" 0)
+    :score/final (get score "T" 0)}))
 
 (defn- prepare-stats [db stat-line]
   {:player-id (get-player-id db (first stat-line))
@@ -48,13 +48,13 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :passing/attempts (stats "att")
-      :passing/complete (stats "cmp")
-      :passing/yards (stats "yds")
-      :passing/tds (stats "tds")
-      :passing/ints (stats "ints")
-      :passing/twopta (stats "twopta")
-      :passing/twoptm (stats "twoptm")}
+      :passing/attempts (get stats "att" 0)
+      :passing/complete (get stats "cmp" 0)
+      :passing/yards (get stats "yds" 0)
+      :passing/tds (get stats "tds" 0)
+      :passing/ints (get stats "ints" 0)
+      :passing/twopta (get stats "twopta" 0)
+      :passing/twoptm (get stats "twoptm" 0)}
      [:db/add db-gameid (keyword-fn "passing") stats-id]]))
 
 (defn- create-rushing-txs
@@ -63,13 +63,13 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :rushing/yards (stats "yds")
-      :rushing/attempts (stats "att")
-      :rushing/tds (stats "tds")
-      :rushing/long (stats "lng")
-      :rushing/longtd (stats "lngtd")
-      :rushing/twopta (stats "twopta")
-      :rushing/twoptm (stats "twoptm")}
+      :rushing/yards (get stats "yds" 0)
+      :rushing/attempts (get stats "att" 0)
+      :rushing/tds (get stats "tds" 0)
+      :rushing/long (get stats "lng" 0)
+      :rushing/longtd (get stats "lngtd" 0)
+      :rushing/twopta (get stats "twopta" 0)
+      :rushing/twoptm (get stats "twoptm" 0)}
      [:db/add db-gameid (keyword-fn "rushing") stats-id]]))
 
 (defn- create-receiving-txs
@@ -78,13 +78,13 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :receiving/receptions (stats "rec")
-      :receiving/yards (stats "yds")
-      :receiving/tds (stats "tds")
-      :receiving/long (stats "lng")
-      :receiving/longtd (stats "lngtd")
-      :receiving/twopta (stats "twopta")
-      :receiving/twoptm (stats "twoptm")}
+      :receiving/receptions (get stats "rec" 0)
+      :receiving/yards (get stats "yds" 0)
+      :receiving/tds (get stats "tds" 0)
+      :receiving/long (get stats "lng" 0)
+      :receiving/longtd (get stats "lngtd" 0)
+      :receiving/twopta (get stats "twopta" 0)
+      :receiving/twoptm (get stats "twoptm" 0)}
      [:db/add db-gameid (keyword-fn "receiving") stats-id]]))
 
 (defn- create-kicking-txs
@@ -93,10 +93,10 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :kicking/fg-attempts (stats "fga")
-      :kicking/fg-made (stats "fgm")
-      :kicking/xp-attempts (stats "xpa")
-      :kicking/xp-made (stats "xpmade")}
+      :kicking/fg-attempts (get stats "fga" 0)
+      :kicking/fg-made (get stats "fgm" 0)
+      :kicking/xp-attempts (get stats "xpa" 0)
+      :kicking/xp-made (get stats "xpmade" 0)}
      [:db/add db-gameid (keyword-fn "kicking") stats-id]]))
 
 (defn- create-puntret-txs
@@ -105,11 +105,11 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :puntret/returns (stats "ret")
-      :puntret/tds (stats "tds")
-      :puntret/long (stats "lng")
-      :puntret/avg (stats "avg")
-      :puntret/longtd (stats "lngtd")}
+      :puntret/returns (get stats "ret" 0)
+      :puntret/tds (get stats "tds" 0)
+      :puntret/long (get stats "lng" 0)
+      :puntret/avg (get stats "avg" 0)
+      :puntret/longtd (get stats "lngtd" 0)}
      [:db/add db-gameid (keyword-fn "puntret") stats-id]]))
 
 (defn- create-kickret-txs
@@ -118,11 +118,11 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :kickret/returns (stats "ret")
-      :kickret/tds (stats "tds")
-      :kickret/long (stats "lng")
-      :kickret/avg (stats "avg")
-      :kickret/longtd (stats "lngtd")}
+      :kickret/returns (get stats "ret" 0)
+      :kickret/tds (get stats "tds" 0)
+      :kickret/long (get stats "lng" 0)
+      :kickret/avg (get stats "avg" 0)
+      :kickret/longtd (get stats "lngtd" 0)}
      [:db/add db-gameid (keyword-fn "kickret") stats-id]]))
 
 (defn- create-defense-txs
@@ -131,11 +131,11 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :defense/sacks (double (stats "sk"))
-      :defense/ints (stats "int")
-      :defense/tackles (stats "tkl")
-      :defense/assists (stats "ast")
-      :defense/fumbles-forced (stats "ffum")}
+      :defense/sacks (double (get stats "sk" 0))
+      :defense/ints (get stats "int" 0)
+      :defense/tackles (get stats "tkl" 0)
+      :defense/assists (get stats "ast" 0)
+      :defense/fumbles-forced (get stats "ffum" 0)}
      [:db/add db-gameid (keyword-fn "defense") stats-id]]))
 
 (defn- create-fumbles-txs
@@ -144,10 +144,10 @@
         (prepare-stats db stat-line)]
     [{:db/id stats-id
       :stats/player player-id
-      :fumbles/lost (stats "lost")
-      :fumbles/recovered (stats "rcv")
-      :fumbles/total (stats "tot")
-      :fumbles/trcv (stats "trcv")}
+      :fumbles/lost (get stats "lost" 0)
+      :fumbles/recovered (get stats "rcv" 0)
+      :fumbles/total (get stats "tot" 0)
+      :fumbles/trcv (get stats "trcv" 0)}
      [:db/add db-gameid (keyword-fn "fumbles") stats-id]]))
 
 

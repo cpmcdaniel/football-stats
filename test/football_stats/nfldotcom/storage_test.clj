@@ -59,14 +59,6 @@
                               [?c :team/mascot ?t]]
                             (db conn))))))
 
-(deftest test-create-game-txs
-  @(store-players conn (:stats nflgame))
-  (doseq [game-tx (create-game-txs (db conn) nflgame)]
-    (try @(d/transact conn [game-tx])
-         (catch Exception e
-           (pprint game-tx)))))
-
-
 (deftest test-create-score-tx
   (let [tx (create-score-tx (api/get-home-team (:stats nflgame)) 1)]
     (is (:score/q1 tx))
@@ -195,4 +187,4 @@
 (deftest test-get-save-directory-default
   (is (= "./stats" (get-save-directory))))
 
-(run-tests)
+#_(run-tests)
