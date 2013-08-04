@@ -1,4 +1,4 @@
-https://www.archlinux.org/# football-stats
+# football-stats
 
 football-stats provides an API for accessing and storing NFL Regular
 season statistics. The current target is a Datomic backend. With this
