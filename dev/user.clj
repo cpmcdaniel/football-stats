@@ -9,6 +9,7 @@
             [clj-webdriver.taxi :as taxi]
             [clj-http.client :as http]
             [datomic.api :refer [db q] :as d]
+            [lamina.core :as l]
             [football-stats.nfldotcom.storage :as storage]
             [football-stats.nfldotcom.api :as api]
             [football-stats.nfldotcom.schema :as schema]
@@ -44,4 +45,11 @@
   (stop)
   (refresh :after 'user/go))
 
+(defn scrape-week [season week]
+  (let [browser (taxi/new-driver {:browser :firefox})]
+    (l/enqueue (:week-channel system)
+               {:season season
+                :week week
+                :web-driver browser})
+    browser))
 
