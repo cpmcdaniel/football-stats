@@ -28,12 +28,12 @@
 
 (use-fixtures :once datomic-fixture)
 
-(defn find-game []
+(defn find-test-game []
   (q '[:find ?g :where
        [?g :game/gameid "2011090800"]] (db conn)))
 
-(defn get-game []
-  (d/entity (db conn) (ffirst (find-game))))
+(defn get-test-game []
+  (d/entity (db conn) (ffirst (find-test-game))))
 
 (defn test-player-stats 
   [parent-key stat-keys]
@@ -72,13 +72,13 @@
   (testing "Store game"
     @(store-game conn nflgame))
   (testing "Find game"
-    (is (= 1 (count (find-game)))))
+    (is (= 1 (count (find-test-game)))))
 
   (testing "Home team"
-    (let [home-team (:home/team (get-game))]
+    (let [home-team (:home/team (get-test-game))]
       (is (= "GB" (:team/abbr home-team)))))
   (testing "Home scoring"
-    (let [scoring (:home/score (get-game))]
+    (let [scoring (:home/score (get-test-game))]
       (is (= 21 (:score/q1 scoring)))
       (is (= 7 (:score/q2 scoring)))
       (is (= 7 (:score/q3 scoring)))

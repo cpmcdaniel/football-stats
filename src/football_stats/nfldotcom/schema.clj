@@ -44,7 +44,7 @@
         mydb (do
                (install conn)
                (db conn))]
-    (d/touch (d/entity mydb (first (first (q '[:find ?t :where [?t :team/abbr "GB"]] mydb)))))))
+    (d/touch (d/entity mydb (ffirst (q '[:find ?t :where [?t :team/abbr "GB"]] mydb))))))
 
 (comment
   ;; Example game entity.

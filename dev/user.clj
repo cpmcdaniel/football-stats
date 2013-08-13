@@ -20,7 +20,8 @@
 (defn init
   "Constructs the current dev instance of the system."
   []
-  (alter-var-root #'system (constantly (sys/system))))
+  (alter-var-root #'system (constantly (sys/system)
+                                       #_{:status :initialized})))
 
 (defn start
   "Starts the current dev system."
@@ -53,3 +54,8 @@
                 :web-driver browser})
     browser))
 
+(defn download-games []
+  (go)
+  (let [driver (taxi/new-driver {:browser :firefox})
+        download (:download-seasons system)]
+    (download driver 2009 2010 2011 2012)))

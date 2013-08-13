@@ -8,7 +8,7 @@
                  [clj-http "0.7.2"]
                  [clj-webdriver "0.6.0"]
                  [cheshire "5.2.0"]
-                 [com.datomic/datomic-free "0.8.4020.26"]
+                 [com.datomic/datomic-free "0.8.4122"]
                  [retry "1.0.2"]
                  [lamina "0.5.0-rc3"]
                  [org.slf4j/slf4j-log4j12 "1.7.5"]]
@@ -20,4 +20,5 @@
   :checksum :warn
   ;;:main football-stats.core
 
+  :jvm-opts ["-Xmx1g"]
   )

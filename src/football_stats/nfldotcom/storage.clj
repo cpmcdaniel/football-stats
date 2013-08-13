@@ -15,16 +15,19 @@
              :default nil)) txs))))
 
 (defn get-team-id [db abbr]
-  (first
-   (first
-    (q '[:find ?t :in $ ?abbr :where [?t :team/abbr ?abbr]] db abbr))))
+  (ffirst
+   (q '[:find ?t :in $ ?abbr :where [?t :team/abbr ?abbr]] db abbr)))
 
 (defn get-player-id [db nflid]
-  (first
-   (first
-    (q '[:find ?p :in $ ?pid :where [?p :player/nflid ?pid]]
-       db nflid))))
+  (ffirst
+   (q '[:find ?p :in $ ?pid :where [?p :player/nflid ?pid]]
+      db nflid)))
 
+(defn get-game [db nfl-gameid]
+  (d/entity
+   (ffirst
+    (q '[:find ?g :in $ ?gid :where [?g :game/gameid ?gid]]
+       db nfl-gameid))))
 
 (defn create-score-tx
   [team score-id]
@@ -257,7 +260,8 @@
   "Creates a lamina channel for storing a game to a file."
   [storage-channel]
   (let [file-channel (l/sink save-game-to-file)]
-    (l/siphon (l/fork storage-channel) file-channel)
+    (when storage-channel
+      (l/siphon (l/fork storage-channel) file-channel))
     file-channel))
 
 (defn create-datomic-channel
@@ -266,7 +270,8 @@
   (let [datomic-channel
         (l/sink (fn [game]
                   @(store-game conn game)))]
-    (l/siphon (l/fork storage-channel) datomic-channel)
+    (when storage-channel
+      (l/siphon (l/fork storage-channel) datomic-channel))
     datomic-channel))
 
 (defn create-storage-channels
@@ -277,7 +282,7 @@
                          (l/filter* #(not-empty (:stats %))))]
     {:storage-channel storage-channel
      :file-channel (create-file-channel storage-channel)
-     :datomic-channel (create-datomic-channel conn storage-channel)}))
+     :datomic-channel (when conn (create-datomic-channel conn storage-channel))}))
 
 (defn close-storage-channels
   "Closes all storage channels"

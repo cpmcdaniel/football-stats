@@ -11,8 +11,9 @@ game data.
   * Try to find declarative way to map NFL JSON to Datomic schema.
   * Remove duplication
 * Resolve position for each player.
-* Optionally store the drive summaries.
-* Function for reading the JSON off the filesystem and feeding to datomic storage channel.
+* Datomic channel not created if datomic connection can not be
+  established. 
+* files->datomic should not create dupes.
 
 ## Usage
 
