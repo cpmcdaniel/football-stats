@@ -1,4 +1,6 @@
-   [
+[
+ {:migration-name :nfldotcom/migration-001
+  :txs    [
     ;; Tx functions
     {:db/id  #db/id[:db.part/db]
      :db/ident :create-player
@@ -12,8 +14,7 @@
                              (if (empty? results)
                                [{:db/id (datomic.api/tempid :db.part/user)
                                  :player/nflid player-id
-                                 :player/name player-name
-                                 :player/current-team team-id}]
+                                 :player/name player-name}]
                                []))"}}
     
     ;; Game
@@ -629,9 +630,61 @@
      :db/ident :WR}
     {:db/id #db/id[:db.part/db]
      :db/ident :TE}
+    
+    {:db/id #db/id[:db.part/db]
+     :db/ident :FB}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :LT}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :RT}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :LG}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :RG}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :C}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :T}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :G}
+    
+    ;; Defense
+    {:db/id #db/id[:db.part/db]
+     :db/ident :DE}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :DT}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :NT}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :LB}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :CB}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :SS}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :FS}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :DB}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :ILB}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :OLB}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :SAF}
+
+    ;; Special Teams
     {:db/id #db/id[:db.part/db]
      :db/ident :K}
-        
+    {:db/id #db/id[:db.part/db]
+     :db/ident :P}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :KR}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :PR}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :LS}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :H}
     
     ;; Team
     {:db/id #db/id[:db.part/db]
@@ -656,6 +709,50 @@
      :db/doc "The team's mascot"
      :db.install/_attribute :db.part/db}
 
+    {:db/id #db/id[:db.part/db]
+     :db/ident :team/site
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/doc "The team's official website"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :team/twitter
+     :db/valueType :db.type/string
+     :db/cardinality :db.cardinality/one
+     :db/doc "The team's Twitter handle"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :team/conference
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/doc "The team's conference"
+     :db.install/_attribute :db.part/db}
+
+    {:db/id #db/id[:db.part/db]
+     :db/ident :team/division
+     :db/valueType :db.type/ref
+     :db/cardinality :db.cardinality/one
+     :db/doc "The team's division"
+     :db.install/_attribute :db.part/db}
+
+    ;; Conference
+    {:db/id #db/id[:db.part/db]
+     :db/ident :AFC}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :NFC}
+
+    ;; Division
+    {:db/id #db/id[:db.part/db]
+     :db/ident :North}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :South}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :East}
+    {:db/id #db/id[:db.part/db]
+     :db/ident :West}
+    
     ;; Weeks
     {:db/id #db/id[:db.part/db]
      :db/ident :PRE0}
@@ -710,3 +807,5 @@
     {:db/id #db/id[:db.part/db]
      :db/ident :POST22} ;; pro-bowl
     ]
+  }
+]

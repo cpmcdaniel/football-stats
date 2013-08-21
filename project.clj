@@ -11,7 +11,8 @@
                  [com.datomic/datomic-free "0.8.4122"]
                  [retry "1.0.2"]
                  [lamina "0.5.0-rc3"]
-                 [org.slf4j/slf4j-log4j12 "1.7.5"]]
+                 [org.slf4j/slf4j-log4j12 "1.7.5"]
+                 [enlive "1.1.1"]]
   :exclusions [org.slf4j/slf4j-nop
                org.slf4j/log4j-over-slf4j]
   :profiles {:dev {:source-paths ["dev"]

@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [clojure.pprint :refer [pprint]]
             [football-stats.nfldotcom.storage :refer :all]
-            [football-stats.nfldotcom.schema :refer [install]]
+            [football-stats.nfldotcom.schema :refer [ensure-migrations]]
             [football-stats.nfldotcom.api :as api]
             [datomic.api :as d :refer [q db]])
   (:import [football_stats.nfldotcom.api Game]))
@@ -22,7 +22,7 @@
   (d/delete-database datomic-test-uri)
   (d/create-database datomic-test-uri)
   (binding [conn (d/connect datomic-test-uri)]
-    (install conn)
+    (ensure-migrations conn)
     (t)) ;; execute test
   )
 

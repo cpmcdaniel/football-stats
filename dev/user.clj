@@ -40,11 +40,23 @@
   (init)
   (start))
 
+(defn play
+  []
+  (alter-var-root #'system (constantly {:datomic-uri "datomic:mem://football-stats"
+                                        :status :initialized}))
+  (start))
+
 (defn reset
   "Stops the system, refreshes all namespaces, and restarts it."
   []
   (stop)
   (refresh :after 'user/go))
+
+(defn resetp
+  "Stops the system, refreshes all namespaces, and restarts it."
+  []
+  (stop)
+  (refresh :after 'user/play))
 
 (defn scrape-week [season week]
   (let [browser (taxi/new-driver {:browser :firefox})]

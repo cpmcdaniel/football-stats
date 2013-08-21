@@ -7,13 +7,15 @@ game data.
 
 ## TODO
 
+* Player enrichment
+  * Player status (Active/IR/Retired/etc.) 
+  * Position
+  * NFL.com IDs. (change attr names)
 * Clean up storage.clj
   * Try to find declarative way to map NFL JSON to Datomic schema.
   * Remove duplication
-* Resolve position for each player.
-* Datomic channel not created if datomic connection can not be
-  established. 
-* files->datomic should not create dupes.
+* Resolve position for each player (from profile page.)
+* files->datomic should not create dupes (use tx attribute).
 
 ## Usage
 

@@ -20,11 +20,10 @@
   
   ;; First setup database.
   (when (and datomic-uri (d/create-database datomic-uri))
-    (let [c (d/connect datomic-uri)
-          datomic-channel (storage/create-datomic-channel c nil)]
+    (let [c (d/connect datomic-uri)]
       (info "Installing datomic database" datomic-uri)
-      (schema/install c)
-      (storage/files->datomic datomic-channel)))
+      (schema/ensure-migrations c)
+      (storage/files->datomic c)))
   
   ;; Next, setup the channels.
   (let [c (when datomic-uri (d/connect datomic-uri))

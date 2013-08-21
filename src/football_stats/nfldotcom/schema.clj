@@ -10,29 +10,73 @@
     (resource "football_stats/nfldotcom/team-data.json"))
    true))
 
-(defn create-metadata-txs []
-  ;; Transaction data for team info.
-  (for [[abbr team] (get-static-team-info)]
-    {:db/id (d/tempid :db.part/user)
-     :team/abbr (:abbr team)
-     :team/name (:city team)
-     :team/mascot (:nickname team)}))
+(defn has-attribute?
+  "Does database have the given attribute defined?"
+  [db attr-name]
+  (-> (d/entity db attr-name)
+      :db.install/_attribute
+      boolean))
 
-(defn install-metadata [conn]
-  (do
-    (d/transact conn (create-metadata-txs))))
+(defn has-migration?
+  "Does database have the given migration applied?"
+  [db migration-attr migration-name]
+  (and (has-attribute? db migration-attr)
+       (-> (d/q '[:find ?e
+                  :in $ ?mattr ?mname
+                  :where [?e ?mattr ?mname]]
+                db migration-attr migration-name)
+           seq
+           boolean)))
 
-(defn install-schema [conn]
-  (d/transact
-   conn
-   (read-string
-    (slurp
-     (resource "football_stats/nfldotcom/schema.dtm")))))
+(defn ensure-migration-attribute
+  "Ensure that migration-attribute is installed in the database."
+  [conn migration-attr]
+  (when-not
+   (has-attribute? (d/db conn) migration-attr)
+   (d/transact conn [{:db/id #db/id[:db.part/db]
+                      :db/ident migration-attr
+                      :db/valueType :db.type/keyword
+                      :db/cardinality :db.cardinality/one
+                      :db/doc "Name of migration installed by this transaction"
+                      :db.install/_attribute :db.part/db}])))
 
-(defn install [conn]
-  (do
-    (install-schema conn)
-    (install-metadata conn)))
+(defn ensure-teamdata [conn]
+  (when-not
+   (has-migration? (d/db conn)
+                   :nfldotcom/migration
+                   :nfldotcom/teamdata)
+   (d/transact
+    conn
+    ;; Transaction data for team info.
+    (cons
+     {:db/id #db/id [:db.part/tx]
+      :nfldotcom/migration :nfldotcom/teamdata}
+     (for [[abbr team] (get-static-team-info)]
+       {:db/id (d/tempid :db.part/user)
+        :team/abbr (:abbr team)
+        :team/name (:city team)
+        :team/mascot (:nickname team)
+        :team/site (:url team)
+        :team/twitter (:twitter team)
+        :team/conference (keyword (:conference team))
+        :team/division (keyword (:division team))})))))
+
+(defn ensure-migrations
+  "Ensure that all migrations are installed"
+  [conn]
+  (ensure-migration-attribute conn :nfldotcom/migration)
+  (doseq [{:keys [migration-name txs]}
+          (read-string
+           (slurp (resource "football_stats/nfldotcom/schema.edn")))]
+    (when-not (has-migration? (d/db conn)
+                               :nfldotcom/migration
+                               migration-name)
+               (d/transact conn
+                           (cons {:db/id #db/id [:db.part/tx]
+                                  :nfldotcom/migration migration-name}
+                                 txs))))
+  (ensure-teamdata conn))
+
 
 
 (defn test-db []
@@ -42,9 +86,10 @@
                (d/create-database uri)
                (d/connect uri))
         mydb (do
-               (install conn)
+               (ensure-migrations conn)
                (db conn))]
     (d/touch (d/entity mydb (ffirst (q '[:find ?t :where [?t :team/abbr "GB"]] mydb))))))
+
 
 (comment
   ;; Example game entity.

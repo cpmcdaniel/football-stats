@@ -1,36 +1,38 @@
 (ns scratch
   (:require [football-stats.nfldotcom.storage :as storage]
+            [football-stats.nfldotcom.schema :as schema]
+            [football-stats.nfldotcom.player :as player]
             [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
             [datomic.api :as d]
-            [user :refer [system]]))
+            [user :refer [go system]]))
 
+(def datomic-uri "datomic:mem://football-stats")
 
-;; Bad file?
-;; 2009 REG10 2009111505
-(def bad-game
-  (storage/file->game
-   (io/file (storage/game-directory {:season 2009 :week "REG10" :gameid "2009111506"})
-            "2009111506")))
+(d/create-database datomic-uri)
+
+(schema/ensure-migrations (d/connect datomic-uri))
+
+(def conn (d/connect datomic-uri))
+
 
 (comment
-  (def bad-game-txs (storage/create-game-txs (d/db (:conn system)) bad-game))
+  (go)
 
-  (loop [txs bad-game-txs idx 0]
-    (when-let [tx (first txs)]
-      (do (println idx ":")
-          (pprint tx)
-          (d/transact (:conn system) [tx])
-          (recur (rest txs) (inc idx))))))
+  (def db (d/db (:conn system)))
 
-(comment
-  (use 'clj-webdriver.taxi)
+  (defn as-entity [record]
+    (d/entity db (first record)))
 
-  (set-driver! {:browser :firefox} "http://www.nfl.com/scores/2011/REG10")
-  (to (attribute "a.game-center-link" :href))
-  (click {:xpath "//a[@href='#analyze']"})
-  (pprint (html {:xpath "//tr[@class='tbdy1']/td/a"}))
-  (pprint (text {:xpath "//tr[@class='tbdy1']/td/a"}))
-  (close))
+  (->
+   (map as-entity
+        (d/q '[:find ?g :where [?g :game/season 2009]
+               [?g :game/week "REG1"]] db))
 
+   first
+   keys)
 
+  (pprint (d/q '[:find ?pid :where [?p :player/name "T.Owens"]
+                 [?p :player/nflid ?pid]] db))
+
+  (player/get-player-profile "00-0012478"))

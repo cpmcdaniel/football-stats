@@ -2,6 +2,7 @@
   (:require [datomic.api :refer [q] :as d]
             [clojure.tools.logging :refer [debugf info error]]
             [football-stats.nfldotcom.api :refer :all]
+            [football-stats.nfldotcom.player :refer :all]
             [lamina.core :as l]
             [clojure.java.io :as io]))
 
@@ -17,11 +18,6 @@
 (defn get-team-id [db abbr]
   (ffirst
    (q '[:find ?t :in $ ?abbr :where [?t :team/abbr ?abbr]] db abbr)))
-
-(defn get-player-id [db nflid]
-  (ffirst
-   (q '[:find ?p :in $ ?pid :where [?p :player/nflid ?pid]]
-      db nflid)))
 
 (defn get-game [db nfl-gameid]
   (d/entity
@@ -306,6 +302,6 @@
        (map file->game)))
 
 (defn files->datomic
-  [datomic-channel]
+  [conn]
   (doseq [game (files->games)]
-    (l/enqueue datomic-channel game)))
+    (store-game conn game)))

@@ -37,11 +37,10 @@
             gameid gameid) {:accept :json :as :json-string-keys :throw-exceptions false})]
       (if (http/success? response)
         (assoc game :stats (:body response))
-        (if (or #_(http/missing? response) (< 4 sleep))
+        (if (< 4 sleep)
           (do (warn "Giving up on game" gameid)
               game)
           (recur (inc sleep)))))))
-
 
 (defn- goto-weekly-stats
   "Goes to the weekly stats page for the specified Season and Week.
